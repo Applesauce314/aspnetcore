@@ -1142,7 +1142,7 @@ public class HubConnectionTests : FunctionalTestBase
 
     [Theory]
     [MemberData(nameof(HubProtocolsList))]
-    public async Task ServerDoesNotThrowHubExceptionOnHubMethodArgumentCountMismatchIFMismatchCausedByCancelationTokens(string hubProtocolName)
+    public async Task ServerDoesNotThrowHubExceptionOnHubMethodArgumentCountMismatchIfMismatchCausedByCancellationTokens(string hubProtocolName)
     {
         var hubProtocol = HubProtocols[hubProtocolName];
         await using (var server = await StartServer<Startup>())

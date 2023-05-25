@@ -1141,6 +1141,34 @@ public class HubConnectionTests : FunctionalTestBase
     }
 
     [Theory]
+    [MemberData(nameof(HubProtocolsList))]
+    public async Task ServerDoesNotThrowHubExceptionOnHubMethodArgumentCountMismatchIFMismatchCausedByCancelationTokens(string hubProtocolName)
+    {
+        var hubProtocol = HubProtocols[hubProtocolName];
+        await using (var server = await StartServer<Startup>())
+        {
+            var connection = CreateHubConnection(server.Url, "/default", HttpTransportType.LongPolling, hubProtocol, LoggerFactory);
+            try
+            {
+                await connection.StartAsync().DefaultTimeout();
+                var cts = new CancellationTokenSource();
+
+                var echoedString = connection.InvokeAsync("EchoWithCancellation", "p1", cancellationToken: cts.Token).DefaultTimeout();
+                Assert.Equal("p1", echoedString);
+            }
+            catch (Exception ex)
+            {
+                LoggerFactory.CreateLogger<HubConnectionTests>().LogError(ex, "{ExceptionType} from test", ex.GetType().FullName);
+                throw;
+            }
+            finally
+            {
+                await connection.DisposeAsync().DefaultTimeout();
+            }
+        }
+    }
+
+    [Theory]
     [MemberData(nameof(HubProtocolsAndTransportsAndHubPaths))]
     public async Task ServerThrowsHubExceptionOnHubMethodArgumentTypeMismatch(string hubProtocolName, HttpTransportType transportType, string hubPath)
     {

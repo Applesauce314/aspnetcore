@@ -1,16 +1,18 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Threading.Channels;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Connections.Features;
 using Microsoft.AspNetCore.Http.Features;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.SignalR.Client.FunctionalTests;
 
@@ -19,6 +21,8 @@ public class TestHub : Hub
     public string HelloWorld() => TestHubMethodsImpl.HelloWorld();
 
     public string Echo(string message) => TestHubMethodsImpl.Echo(message);
+
+    public Task<string?> EchoWithCancellation(string? message, CancellationToken cancellationToken) => TestHubMethodsImpl.EchoWithCancellation(message, cancellationToken);
 
     public ChannelReader<int> Stream(int count) => TestHubMethodsImpl.Stream(count);
 
@@ -206,6 +210,13 @@ internal static class TestHubMethodsImpl
 
     public static string Echo(string message)
     {
+        return message;
+    }
+
+    public static async Task<string?> EchoWithCancellation(string? message, CancellationToken cancellationToken = default)
+    {
+        await Task.Delay(1);
+        cancellationToken.ThrowIfCancellationRequested();
         return message;
     }
 
